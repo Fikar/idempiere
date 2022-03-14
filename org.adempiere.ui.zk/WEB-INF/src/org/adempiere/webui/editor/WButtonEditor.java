@@ -247,7 +247,8 @@ public class WButtonEditor extends WEditor implements IProcessButton
         else if (super.getColumnName().equals("DocAction")
         		&& !MSysConfig.getBooleanValue(MSysConfig.DOCACTIONBUTTON_SHOWACTIONNAME, false, Env.getAD_Client_ID(Env.getCtx())))
         {
-            text = Msg.getElement(Env.getCtx(), "DocAction");
+        	// liangwei, comment doc action translation
+//            text = Msg.getElement(Env.getCtx(), "DocAction");
         }
         else if (m_values != null)
         {

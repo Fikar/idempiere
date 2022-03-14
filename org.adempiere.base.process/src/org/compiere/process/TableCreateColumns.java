@@ -16,6 +16,7 @@
  *****************************************************************************/
 package org.compiere.process;
 
+import com.google.common.base.CaseFormat;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -240,6 +241,10 @@ public class TableCreateColumns extends SvrProcess
 			M_Element element = M_Element.get (getCtx (), columnName);
 			if (element == null)
 			{
+				// liangwei, if ends with 'id', transfer to upper case 'ID', so idempiere recognize it as key element.
+				if (columnName.endsWith("_id")) {
+					columnName = columnName.substring(0, columnName.length() - 2) + columnName.substring(columnName.length() - 2).toUpperCase();
+				}
 				element = new M_Element (getCtx (), columnName, p_EntityType,
 					get_TrxName ());
 				//contribution from teo_sarca, bug [ 1637912 ]
@@ -259,6 +264,19 @@ public class TableCreateColumns extends SvrProcess
 					element.setName(uuidColumn);
 					element.setPrintName(uuidColumn);
 				}
+				
+				// liangwei, convert columnName from dash case to upper camel case
+				String camelColumnName = columnName;
+				if (!columnName.equalsIgnoreCase(table.getTableName() + "_ID") && !columnName.equalsIgnoreCase(uuidColumn)) {
+					String upperColumnName = columnName.toUpperCase();
+					camelColumnName = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, columnName);
+					if (upperColumnName.endsWith("_ID") || upperColumnName.endsWith("_UU")) {
+						camelColumnName = camelColumnName.substring(0, camelColumnName.length() - 2) + "_" + camelColumnName.substring(camelColumnName.length() - 2).toUpperCase();
+					}
+					element.setName(camelColumnName);
+					element.setPrintName(camelColumnName);
+				}
+				
 				element.saveEx();
 			}
 			column.setColumnName (element.getColumnName ());

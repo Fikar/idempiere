@@ -3439,8 +3439,9 @@ public abstract class AbstractADWindowContent extends AbstractUIPart implements 
 			GridTab gridTab = null;
 			if (adtabPanel != null)
 				gridTab = adtabPanel.getGridTab();
-			ADForm form = ADForm.openForm(adFormID, gridTab);
-			form.setProcessInfo(pi);
+			// liangwei, pass pi to constructor
+			ADForm form = ADForm.openForm(adFormID, gridTab, pi);
+//			form.setProcessInfo(pi);
 			Mode mode = form.getWindowMode();
 			form.setAttribute(Window.MODE_KEY, form.getWindowMode());
 			form.setAttribute(Window.INSERT_POSITION_KEY, Window.INSERT_NEXT);

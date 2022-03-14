@@ -131,6 +131,10 @@
         <name>org.zkoss.theme.preferred</name>
         <value>breeze</value>
     </library-property>
+    <library-property>
+       <name>org.zkoss.zk.ui.uuidRecycle.disabled</name>
+       <value>true</value>
+    </library-property>
 	<preference>
     	<name>org.zkoss.zk.ui.WebApp.name</name>
     	<value>iDempiere</value>

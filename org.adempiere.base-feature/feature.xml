@@ -21,25 +21,25 @@
          id="org.compiere.db.provider.feature"
          version="0.0.0"/>
 
-   <includes
+<!--    <includes
          id="org.adempiere.payment.processor.feature"
-         version="0.0.0"/>
+         version="0.0.0"/> -->
 
    <includes
          id="org.adempiere.pipo.feature"
          version="0.0.0"/>
 
-   <includes
+<!--    <includes
          id="org.adempiere.replication.feature"
-         version="0.0.0"/>
+         version="0.0.0"/> -->
 
-   <includes
+<!--    <includes
          id="org.adempiere.report.jasper.feature"
-         version="0.0.0"/>
+         version="0.0.0"/> -->
 
-   <includes
+<!--    <includes
          id="org.idempiere.webservices.client.feature"
-         version="0.0.0"/>
+         version="0.0.0"/> -->
 
    <plugin
          id="org.adempiere.base"

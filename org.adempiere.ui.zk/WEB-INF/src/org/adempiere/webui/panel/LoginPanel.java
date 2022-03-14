@@ -248,6 +248,8 @@ public class LoginPanel extends Window implements EventListener<Event>
     	table.appendChild(tr);
     	Td td = new Td();
     	td.setSclass(ITheme.LOGIN_BOX_HEADER_LOGO_CLASS);
+    	// liangwei, add padding below login logo
+    	td.setStyle("padding-bottom: 20px;");
     	tr.appendChild(td);
     	td.setDynamicProperty("colspan", "2");
     	Image image = new Image();
@@ -469,7 +471,8 @@ public class LoginPanel extends Window implements EventListener<Event>
 	private void openLoginHelp() {
 		String langName = (String) lstLanguage.getSelectedItem().getValue();
 		langName = langName.substring(0, 2);
-		String helpURL = MSysConfig.getValue(MSysConfig.LOGIN_HELP_URL, "http://wiki.idempiere.org/{lang}/Login_Help");
+		// liangwei, change help url
+		String helpURL = MSysConfig.getValue(MSysConfig.LOGIN_HELP_URL, "http://www.gogetter.cn");
 		if (helpURL.contains("{lang}"))
 			helpURL = Util.replace(helpURL, "{lang}", langName);
 		try {

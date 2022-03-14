@@ -34,12 +34,12 @@ import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
 
-import javax.mail.Folder;
-import javax.mail.MessagingException;
-import javax.mail.NoSuchProviderException;
-import javax.mail.Session;
-import javax.mail.Store;
-import javax.mail.internet.InternetAddress;
+//import javax.mail.Folder;
+//import javax.mail.MessagingException;
+//import javax.mail.NoSuchProviderException;
+//import javax.mail.Session;
+//import javax.mail.Store;
+//import javax.mail.internet.InternetAddress;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -52,13 +52,18 @@ import org.compiere.Adempiere;
 import org.compiere.db.CConnection;
 import org.compiere.db.Database;
 import org.compiere.model.MSystem;
-import org.compiere.util.CLogMgt;
+//import org.compiere.util.CLogMgt;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
-import org.compiere.util.EMail;
-import org.compiere.util.EMailAuthenticator;
+//import org.compiere.util.EMail;
+//import org.compiere.util.EMailAuthenticator;
 import org.compiere.util.Ini;
+import org.compiere.util.Util;
 import org.eclipse.jetty.util.security.Password;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 
 /**
@@ -196,11 +201,22 @@ public class ConfigurationData
 
 	/** 				*/
 	public static final String	ADEMPIERE_WEBSTORES		= "ADEMPIERE_WEBSTORES";
+	
+	/** RabbitMQ */
+	public static final String	ADEMPIERE_RABBITMQ_SERVER	= "ADEMPIERE_RABBITMQ_SERVER";
+	public static final String	ADEMPIERE_RABBITMQ_PORT		= "ADEMPIERE_RABBITMQ_PORT";
+	public static final String	ADEMPIERE_RABBITMQ_USERNAME	= "ADEMPIERE_RABBITMQ_USERNAME";
+	public static final String	ADEMPIERE_RABBITMQ_PASSWORD	= "ADEMPIERE_RABBITMQ_PASSWORD";
+	public static final String	ADEMPIERE_RABBITMQ_VHOST	= "ADEMPIERE_RABBITMQ_VHOST";
+	
+	public static final String	ADEMPIERE_PARAM_JSON	= "ADEMPIERE_PARAM_JSON";
+	public static final String	ADEMPIERE_DEBUG_MODE	= "ADEMPIERE_DEBUG_MODE";
 
 	public static final List<String> secretVars = Arrays.asList(new String[] {
 			ADEMPIERE_DB_PASSWORD,
 			ADEMPIERE_DB_SYSTEM,
-			ADEMPIERE_MAIL_PASSWORD
+			ADEMPIERE_MAIL_PASSWORD,
+			ADEMPIERE_RABBITMQ_PASSWORD
 	});
 
 	public void updateProperty(String property, String value) {
@@ -306,12 +322,29 @@ public class ConfigurationData
 				setDatabaseExists((String)loaded.get(ADEMPIERE_DB_EXISTS));
 			
 
-			if (p_panel != null)
-			{
-				p_panel.fMailServer.setText((String)p_properties.get(ADEMPIERE_MAIL_SERVER));
-				p_panel.fMailUser.setText((String)p_properties.get(ADEMPIERE_MAIL_USER));
-				p_panel.fMailPassword.setText((String)p_properties.get(ADEMPIERE_MAIL_PASSWORD));
-				p_panel.fAdminEMail.setText((String)p_properties.get(ADEMPIERE_ADMIN_EMAIL));
+			if (p_panel != null) {
+				if (loaded.containsKey(ADEMPIERE_DEBUG_MODE))
+					p_panel.okDebugMode.setSelected(((String)p_properties.get(ADEMPIERE_DEBUG_MODE)).equals("Y") ? true : false);
+				if (loaded.containsKey(ADEMPIERE_RABBITMQ_SERVER))
+					p_panel.fRabbitMQServer.setText((String)p_properties.get(ADEMPIERE_RABBITMQ_SERVER));
+				if (loaded.containsKey(ADEMPIERE_RABBITMQ_PORT))
+					p_panel.fRabbitMQPort.setText((String)p_properties.get(ADEMPIERE_RABBITMQ_PORT));
+				if (loaded.containsKey(ADEMPIERE_RABBITMQ_USERNAME))
+					p_panel.fRabbitMQUser.setText((String)p_properties.get(ADEMPIERE_RABBITMQ_USERNAME));
+				if (loaded.containsKey(ADEMPIERE_RABBITMQ_PASSWORD))
+					p_panel.fRabbitMQPassword.setText((String)p_properties.get(ADEMPIERE_RABBITMQ_PASSWORD));
+				if (loaded.containsKey(ADEMPIERE_RABBITMQ_VHOST))
+					p_panel.fRabbitMQVHost.setText((String)p_properties.get(ADEMPIERE_RABBITMQ_VHOST));
+				if (loaded.containsKey(ADEMPIERE_PARAM_JSON)) {
+					try {
+						JsonArray array = JsonParser.parseString((String)p_properties.get(ADEMPIERE_PARAM_JSON)).getAsJsonArray();
+						array.forEach((o) -> {
+							p_panel.addAPIConf(o.getAsJsonObject().get("key").getAsString(), o.getAsJsonObject().get("val").getAsString());
+						});
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
 			}
 		}
 		else
@@ -355,12 +388,12 @@ public class ConfigurationData
 			setDatabaseUser("adempiere");
 			setDatabasePassword("adempiere");
 			//	Mail Server
-			setMailServer("localhost");
+//			setMailServer("localhost");
 			//setMailUser("info");
-			setMailUser("");
-			setMailPassword("");
+//			setMailUser("");
+//			setMailPassword("");
 			//setAdminEMail("info@" + hostName);
-			setAdminEMail("");
+//			setAdminEMail("");
 		}	//	!envLoaded
 
 		//	Default FTP stuff
@@ -439,14 +472,9 @@ public class ConfigurationData
 			return false;
 		}
 
-		if (p_panel != null)
-			p_panel.setStatusBar(p_panel.lMailServer.getText());
-		error = testMail();
-		if (error != null)
-		{
-			log.warning(error);
-			return false;
-		}
+		testDebugMode();
+		error = testRabbitMQ();
+		error = testParamList();
 
 		return true;
 	}	//	test
@@ -511,235 +539,38 @@ public class ConfigurationData
 
 
 	/**************************************************************************
-	 * 	Test (optional) Mail
-	 *	@return error message or null, if OK
+	 * Test (optional) RabbitMQ
 	 */
-	public String testMail()
-	{
-		//	Mail Server
-		String server = p_panel != null
-			? p_panel.fMailServer.getText()
-			: (String)p_properties.get(ADEMPIERE_MAIL_SERVER);
-		boolean pass = server != null && server.length() > 0;
-		String error = "Error Mail Server = " + server;
-		InetAddress	mailServer = null;
-		try
-		{
-			if (pass)
-				mailServer = InetAddress.getByName(server);
-		}
-		catch (Exception e)
-		{
-			error += " - " + e.getMessage();
-			pass = false;
-		}
-		if (p_panel != null)
-			p_panel.signalOK(p_panel.okMailServer, "ErrorMailServer",
-					pass, true, error);
-		if (!pass)
-		{
-			p_properties.setProperty(ADEMPIERE_MAIL_SERVER, "");
-			return error;
-		}
-		p_properties.setProperty(ADEMPIERE_MAIL_SERVER, mailServer.getHostName());
-
-		//	Mail User
-		String mailUser = p_panel != null
-			? p_panel.fMailUser.getText()
-			: (String)p_properties.get(ADEMPIERE_MAIL_USER);
-		String mailPassword = p_panel != null
-			? new String(p_panel.fMailPassword.getPassword())
-			: (String)p_properties.get(ADEMPIERE_MAIL_PASSWORD);
-	//	m_errorString = "ErrorMailUser";
-	//	log.config("Mail User = " + mailUser + "/" + mailPassword);
-
-		//	Mail Address
-		String adminEMailString = p_panel != null
-			? p_panel.fAdminEMail.getText()
-			: (String)p_properties.get(ADEMPIERE_ADMIN_EMAIL);
-		InternetAddress adminEMail = null;
-		if (adminEMailString != null && adminEMailString.length() > 0) {
-			try
-			{
-				adminEMail = new InternetAddress (adminEMailString);
-			}
-			catch (Exception e)
-			{
-				error = "Not valid: " +  adminEMailString + " - " + e.getMessage();
-				pass = false;
-			}
-			//
-			if (pass)
-			{
-				error = "Not verified EMail = " + adminEMail;
-				pass = testMailServer(mailServer, adminEMail, mailUser, mailPassword);
-			}
-			if (p_panel != null)
-				p_panel.signalOK(p_panel.okMailUser, "ErrorMail",
-						pass, false, error);
-		} else {
-			pass = false;
-		}
-		if (pass)
-		{
-			if (log.isLoggable(Level.INFO)) log.info("OK: EMail = " + adminEMail);
-			p_properties.setProperty(ADEMPIERE_ADMIN_EMAIL, adminEMail.toString());
-			p_properties.setProperty(ADEMPIERE_MAIL_USER, mailUser);
-			p_properties.setProperty(ADEMPIERE_MAIL_PASSWORD, mailPassword);
-			p_properties.setProperty(ADEMPIERE_MAIL_UPDATED, "No");
-		}
-		else
-		{
-			if (adminEMailString != null && adminEMailString.length() > 0) {
-				log.warning(error);
-			} else {
-				if (log.isLoggable(Level.INFO)) log.info("OK: EMail not configured");
-			}
-			p_properties.setProperty(ADEMPIERE_ADMIN_EMAIL, "");
-			p_properties.setProperty(ADEMPIERE_MAIL_USER, "");
-			p_properties.setProperty(ADEMPIERE_MAIL_PASSWORD, "");
-			p_properties.setProperty(ADEMPIERE_MAIL_UPDATED, "");
-		}
+	public String testRabbitMQ() {
+		setProperty(ADEMPIERE_RABBITMQ_SERVER, p_panel.fRabbitMQServer.getText());
+		setProperty(ADEMPIERE_RABBITMQ_PORT, p_panel.fRabbitMQPort.getText());
+		setProperty(ADEMPIERE_RABBITMQ_USERNAME, p_panel.fRabbitMQUser.getText());
+		setProperty(ADEMPIERE_RABBITMQ_PASSWORD, new String(p_panel.fRabbitMQPassword.getPassword()));
+		setProperty(ADEMPIERE_RABBITMQ_VHOST, p_panel.fRabbitMQVHost.getText());
 		return null;
-	}	//	testMail
+	}
 
-	/**
-	 * 	Test Mail
-	 * 	@param mailServer mail server
-	 * 	@param adminEMail email of admin
-	 * 	@param mailUser user ID
-	 * 	@param mailPassword password
-	 *  @return true of OK
-	 */
-	private boolean testMailServer(InetAddress	mailServer, InternetAddress adminEMail,
-		String mailUser, String mailPassword)
-	{
-		boolean isGmail = mailServer.getHostName().equalsIgnoreCase("smtp.gmail.com");
-		boolean smtpOK = false;
-		boolean imapOK = false;
-		if (testPort (mailServer, isGmail ? 587 : 25, true))
-		{
-			log.config("OK: SMTP Server contacted");
-			smtpOK = true;
+	public String testParamList() {
+		if (p_panel.fParamKeyList.size() == 0)
+			return null;
+		JsonArray array = new JsonArray();
+		for (int i = 0; i < p_panel.fParamKeyList.size(); i++) {
+			String key = p_panel.fParamKeyList.get(i).getText().trim();
+			String val = p_panel.fParamValList.get(i).getText().trim();
+			if (Util.isEmpty(key) || Util.isEmpty(val))
+				continue;
+			JsonObject obj = new JsonObject();
+			obj.addProperty("key", key);
+			obj.addProperty("val", val);
+			array.add(obj);
 		}
-		else
-			log.info("SMTP Server NOT available");
-		//
-		if (testPort (mailServer, isGmail ? 995 : 110, true))
-			log.config("OK: POP3 Server contacted");
-		else
-			log.info("POP3 Server NOT available");
-		if (testPort (mailServer, isGmail ? 993 : 143, true))
-		{
-			log.config("OK: IMAP4 Server contacted");
-			imapOK = true;
-		}
-		else
-			log.info("IMAP4 Server NOT available");
-		//
-		if (!smtpOK)
-		{
-			String error = "No active Mail Server";
-			if (p_panel != null)
-				p_panel.signalOK (p_panel.okMailServer, "ErrorMailServer",
-						false, false, error);
-			log.warning(error);
-			return false;
-		}
-		//
-		try
-		{
-			String admail = adminEMail.toString();
-			StringBuilder msg = new StringBuilder("Test: \n");
-		    getProperties().forEach((k, v) -> {
-		        String key = k.toString();
-		        String value = v.toString();
-		    	msg.append(key).append("=");
-		    	if (secretVars.contains(key)) {
-			    	msg.append("********");
-		    	} else {
-			    	msg.append(value);
-		    	}
-		    	msg.append("\n");
-		    });
-			EMail email = new EMail (new Properties(),
-					mailServer.getHostName (),
-					admail, admail,
-					"iDempiere Server Setup Test",
-					msg.toString());
-			email.createAuthenticator (mailUser, mailPassword);
-			if (EMail.SENT_OK.equals (email.send ()))
-			{
-				if (log.isLoggable(Level.INFO)) log.info("OK: Send Test Email to " + adminEMail);
-			}
-			else
-			{
-				log.warning("Could NOT send Email to " + adminEMail);
-			}
-		}
-		catch (Exception ex)
-		{
-			log.severe(ex.getLocalizedMessage());
-			return false;
-		}
-
-		//
-		if (!imapOK)
-			return false;
-
-		//	Test Read Mail Access
-		Properties props = new Properties();
-		props.put("mail.store.protocol", "smtp");
-		props.put("mail.transport.protocol", "smtp");
-		props.put("mail.host", mailServer.getHostName());
-		props.put("mail.user", mailUser);
-		props.put("mail.smtp.auth", "true");
-		if (isGmail) {
-			props.put("mail.imaps.port", "993");
-			props.put("mail.store.protocol", "imaps");
-		}
-
-		if (log.isLoggable(Level.CONFIG)) log.config("Connecting to " + mailServer.getHostName());
-		//
-		Session session = null;
-		Store store = null;
-		try
-		{
-			EMailAuthenticator auth = new EMailAuthenticator (mailUser, mailPassword);
-			session = Session.getDefaultInstance(props, auth);
-			session.setDebug (CLogMgt.isLevelFinest());
-			if (log.isLoggable(Level.CONFIG)) log.config("Session=" + session);
-			//	Connect to Store
-			store = session.getStore(isGmail ? "imaps" : "imap");
-			if (log.isLoggable(Level.CONFIG)) log.config("Store=" + store);
-		}
-		catch (NoSuchProviderException nsp)
-		{
-			log.warning("Mail IMAP Provider - " + nsp.getMessage());
-			return false;
-		}
-		catch (Exception e)
-		{
-			log.warning("Mail IMAP - " + e.getMessage());
-			return false;
-		}
-		try
-		{
-			store.connect(mailServer.getHostName(), mailUser, mailPassword);
-			log.config("Store - connected");
-			Folder folder = store.getDefaultFolder();
-			Folder inbox = folder.getFolder("INBOX");
-			if (log.isLoggable(Level.INFO)) log.info("OK: Mail Connect to " + inbox.getFullName() + " #Msg=" + inbox.getMessageCount());
-			//
-			store.close();
-		}
-		catch (MessagingException mex)
-		{
-			log.severe("Mail Connect " + mex.getMessage());
-			return false;
-		}
-		return true;
-	}	//	testMailServer
+		setProperty(ADEMPIERE_PARAM_JSON, array.toString());
+		return null;
+	}
+	
+	public void testDebugMode() {
+		setProperty(ADEMPIERE_DEBUG_MODE, p_panel.okDebugMode.isSelected() ? "Y" : "N");
+	}
 
 
 	/**************************************************************************

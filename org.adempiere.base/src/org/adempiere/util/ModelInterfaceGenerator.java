@@ -48,11 +48,14 @@ import org.compiere.Adempiere;
 import org.compiere.model.MEntityType;
 import org.compiere.model.MQuery;
 import org.compiere.model.MTable;
+import org.compiere.model.M_Element;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 import org.compiere.util.DisplayType;
 import org.compiere.util.Env;
 import org.compiere.util.Util;
+
+import com.google.common.base.CaseFormat;
 
 /**
  *	@author Trifon Trifonov
@@ -337,13 +340,23 @@ public class ModelInterfaceGenerator
 			defaultValue = "";
 
 		StringBuilder sb = new StringBuilder();
+		
+		// liangwei, convert columnName from dash case to upper camel case
+		String camelColumnName = columnName;
+		if (!isReservedColumn(columnName)) {
+			String upperColumnName = columnName.toUpperCase();
+			camelColumnName = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, columnName);
+			if (upperColumnName.endsWith("_ID") || upperColumnName.endsWith("_UU")) {
+				camelColumnName = camelColumnName.substring(0, camelColumnName.length() - 2) + "_" + camelColumnName.substring(camelColumnName.length() - 2).toUpperCase();
+			}
+		}
 
 		if (isGenerateSetter(columnName))
 		{
 			// Create Java Comment
 			generateJavaComment("Set", Name, Description, sb);
 			// public void setColumn (xxx variable)
-			sb.append("\tpublic void set").append(columnName).append(" (")
+			sb.append("\tpublic void set").append(camelColumnName).append(" (")
 				.append(dataType).append(" ").append(columnName).append(");");
 		}
 
@@ -353,12 +366,12 @@ public class ModelInterfaceGenerator
 		sb.append("\tpublic ").append(dataType);
 		if (clazz.equals(Boolean.class)) {
 			sb.append(" is");
-			if (columnName.toLowerCase().startsWith("is"))
-				sb.append(columnName.substring(2));
+			if (camelColumnName.toLowerCase().startsWith("is"))
+				sb.append(camelColumnName.charAt(2) == '_' ? camelColumnName.substring(3) : camelColumnName.substring(2));
 			else
-				sb.append(columnName);
+				sb.append(camelColumnName);
 		} else
-			sb.append(" get").append(columnName);
+			sb.append(" get").append(camelColumnName);
 		sb.append("();");
 		//
 
@@ -631,7 +644,10 @@ public class ModelInterfaceGenerator
 			fieldName = columnName.substring(0, columnName.length() - 6) + "_To";
 		else
 			fieldName = columnName.substring(0, columnName.length() - 3);
-		return fieldName;
+		String camelFieldName = fieldName;
+		if (!isReservedColumn(fieldName))
+			camelFieldName = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, fieldName);
+		return camelFieldName;
 	}
 
 	public static String getReferenceClassName(int AD_Table_ID, String columnName, int displayType, int AD_Reference_ID)
@@ -877,5 +893,46 @@ public class ModelInterfaceGenerator
 			DB.close(rs, pstmt);
 			rs = null; pstmt = null;
 		}
+	}
+	
+	// liangwei, not process existed column by case camel
+	public static boolean isReservedColumn(String columnName)
+	{
+		M_Element ele = M_Element.get(null, columnName);
+		if (ele != null && !ele.is_new())
+			return ele.getEntityType().equals("D");
+		return 
+				"Name".equals(columnName)
+			|| "Value".equals(columnName)
+			|| "Description".equals(columnName)
+			|| "Help".equals(columnName)
+			|| "DateTrx".equals(columnName)
+			|| "DateAcct".equals(columnName)
+			|| "C_DocTypeTarget_ID".equals(columnName)
+			|| "C_DocType_ID".equals(columnName)
+			|| "DocumentNo".equals(columnName)
+			|| "SalesRep_ID".equals(columnName)
+			|| "AD_User_ID".equals(columnName)
+			|| "C_Currency_ID".equals(columnName)
+			|| "IsApproved".equals(columnName)
+			|| "Posted".equals(columnName)
+			|| "DocAction".equals(columnName)
+			|| "DocStatus".equals(columnName)
+			|| "Processed".equals(columnName)
+			|| "ProcessedOn".equals(columnName)
+			|| "Processing".equals(columnName)
+			|| "AD_Language".equals(columnName)
+			|| "IsTranslated".equals(columnName)
+			|| "AD_Client_ID".equals(columnName)
+			|| "AD_Org_ID".equals(columnName)
+			|| "Created".equals(columnName)
+			|| "CreatedBy".equals(columnName)
+			|| "Updated".equals(columnName)
+			|| "UpdatedBy".equals(columnName)
+			|| "IsActive".equals(columnName)
+			|| "AD_Image_ID".equals(columnName)
+			|| "Account_ID".equals(columnName)
+			|| "ChangeDate".equals(columnName)
+		;
 	}
 }

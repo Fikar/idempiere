@@ -18,6 +18,9 @@
 package org.adempiere.webui;
 
 import java.lang.ref.WeakReference;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Enumeration;
 import java.util.Locale;
 import java.util.Properties;
@@ -60,6 +63,9 @@ import org.compiere.util.Env;
 import org.compiere.util.Language;
 import org.compiere.util.Msg;
 import org.compiere.util.Util;
+import org.idempiere.broadcast.BroadCastMsg;
+import org.idempiere.broadcast.BroadCastUtil;
+import org.idempiere.broadcast.BroadcastMsgUtil;
 import org.zkforge.keylistener.Keylistener;
 import org.zkoss.web.Attributes;
 import org.zkoss.web.servlet.Servlets;
@@ -325,13 +331,26 @@ public class AdempiereWebUI extends Window implements EventListener<Event>, IWeb
 		if (port > 0 && port != 80) {
 			localHttpAddr.append(":").append(port);
 		}
-		Env.setContext(ctx, Env.LOCAL_HTTP_ADDRESS, localHttpAddr.toString());		
+		Env.setContext(ctx, Env.LOCAL_HTTP_ADDRESS, localHttpAddr.toString());
+		
+		// liangwei, add server addr to ctx
+		StringBuilder serverHttpAddr = new StringBuilder(Executions.getCurrent().getScheme());
+		serverHttpAddr.append("://").append(Executions.getCurrent().getServerName());
+		int svrPort = Executions.getCurrent().getServerPort();
+		if (svrPort > 0 && svrPort != 80) {
+			serverHttpAddr.append(":").append(svrPort);
+		}
+		Env.setContext(ctx, Env.SERVER_HTTP_ADDRESS, serverHttpAddr.toString());
+		
 		Clients.response(new AuScript("zAu.cmd0.clearBusy()"));
 		
 		//init favorite
 		FavouriteController.getInstance(currSess);
 		
-		processParameters();	
+		processParameters();
+		
+		// liangwei, kick user offline when login on another device
+		kickUserOffline(Env.getAD_User_ID(ctx), mSession.getAD_Session_ID());
     }
 
     private void processParameters() {
@@ -665,5 +684,38 @@ public class AdempiereWebUI extends Window implements EventListener<Event>, IWeb
 			uploadSetting.append(",maxsize=").append(size);
 		}
 		return uploadSetting.toString();
-	}	
+	}
+	
+	// liangwei, kick user offline when login on another device
+	private void kickUserOffline(int AD_User_ID, int currSession_ID) {
+		if (MSysConfig.getValue("ALLOW_LOGIN_ON_MULTIPLE_DEVICE", "N").equals("Y"))
+			return;
+		StringBuilder sql = new StringBuilder("SELECT ");
+		sql.append("s.ad_session_id, u.name ")
+			.append(" FROM ad_session s ")
+			.append(" LEFT JOIN ad_user u ON s.createdby = u.ad_user_id ")
+			.append(" WHERE s.processed = 'N' AND u.ad_user_id = ? ");
+		
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		try {
+			pstmt = DB.prepareStatement(sql.toString(), null);
+			pstmt.setInt(1, AD_User_ID);
+			rs = pstmt.executeQuery();
+			while (rs.next()) {
+				int AD_Session_ID = rs.getInt(1);
+				if (AD_Session_ID == currSession_ID)
+					continue;
+				BroadCastMsg msg = new BroadCastMsg();
+				msg.setEventId(BroadCastUtil.EVENT_SESSION_TIMEOUT);
+				msg.setIntData(60);
+				msg.setTarget(Integer.toString(AD_Session_ID));
+				BroadcastMsgUtil.pushToQueue(msg, false);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			DB.close(rs, pstmt);
+		}
+	}
 }

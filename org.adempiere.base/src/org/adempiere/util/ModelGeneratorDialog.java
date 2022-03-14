@@ -69,7 +69,9 @@ public class ModelGeneratorDialog extends JFrame implements ActionListener {
 
 		Panel filePanel = new Panel();
 		filePanel.setLayout(new BorderLayout());
-		String defaultPath = Adempiere.getAdempiereHome() + File.separator + "org.adempiere.base" + File.separator + "src";
+		// liangwei, get source folder from vm argument
+		String sourceFolder = System.getProperty("SourceFolder", "org.gogetter.*");
+		String defaultPath = Adempiere.getAdempiereHome() + File.separator + sourceFolder + File.separator + "src";
 		fFolderName = new JTextField(defaultPath);
 		filePanel.add(fFolderName, BorderLayout.CENTER);
 		bFolder = new JButton("...");
@@ -80,15 +82,17 @@ public class ModelGeneratorDialog extends JFrame implements ActionListener {
 		bFolder.addActionListener(this);
 
 		mainPanel.add(new JLabel("Package Name"), makeGbc(0, 1));
-		fPackageName = new JTextField("org.compiere.model");
+		// liangwei, get package name from vm argument
+		String packageName = System.getProperty("PackageName", "org.gogetter.*.table");
+		fPackageName = new JTextField(packageName);
 		mainPanel.add(fPackageName, makeGbc(1, 1));
 
 		mainPanel.add(new JLabel("Table Name"), makeGbc(0, 2));
-		fTableName = new JTextField("AD_ReplaceThis%");
+		fTableName = new JTextField("");
 		mainPanel.add(fTableName, makeGbc(1, 2));
 
 		mainPanel.add(new JLabel("Table Entity Type"), makeGbc(0, 3));
-		fEntityType = new JTextField("D");
+		fEntityType = new JTextField("U");
 		mainPanel.add(fEntityType, makeGbc(1, 3));
 		
 		mainPanel.add(new JLabel("Column Entity Type"), makeGbc(0, 4));
@@ -158,10 +162,14 @@ public class ModelGeneratorDialog extends JFrame implements ActionListener {
 			String columnEntityType = fColumnEntityType.getText();
 			this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 			if (fGenerateInterface.isSelected()) {
-				ModelInterfaceGenerator.generateSource(folder, packageName, entityType, tableName, columnEntityType);
+				// liangwei, batch tables
+				for (String tbName : tableName.split(","))
+					ModelInterfaceGenerator.generateSource(folder, packageName, entityType, tbName, columnEntityType);
 			}
 			if (fGenerateClass.isSelected()) {
-				ModelClassGenerator.generateSource(folder, packageName, entityType, tableName, columnEntityType);
+				// liangwei, batch tables
+				for (String tbName : tableName.split(","))
+					ModelClassGenerator.generateSource(folder, packageName, entityType, tbName, columnEntityType);
 			}			
 			this.dispose();
 		} else if (e.getSource() == bCancel) {

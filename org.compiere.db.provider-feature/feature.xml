@@ -17,12 +17,12 @@
       [Enter License Description here.]
    </license>
 
-   <plugin
+<!--    <plugin
          id="org.compiere.db.oracle.provider"
          download-size="0"
          install-size="0"
          version="0.0.0"
-         unpack="false"/>
+         unpack="false"/> -->
 
    <plugin
          id="org.compiere.db.postgresql.provider"

@@ -47,6 +47,14 @@
 		<servlet-name>idempiereMonitor</servlet-name>
 		<url-pattern>/idempiereMonitor/*</url-pattern>
 	</servlet-mapping>
+	<servlet>
+		<servlet-name>RedirectToWeb</servlet-name>
+		<servlet-class>org.idempiere.web.RedirectWeb</servlet-class>
+	</servlet>
+   <servlet-mapping>
+   	   <servlet-name>RedirectToWeb</servlet-name>
+   	   <url-pattern></url-pattern>
+   </servlet-mapping>
 	<session-config>
 		<session-timeout>15</session-timeout>
 	</session-config>

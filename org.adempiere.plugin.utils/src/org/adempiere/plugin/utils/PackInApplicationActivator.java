@@ -30,7 +30,7 @@ import org.adempiere.util.ServerContext;
 import org.compiere.Adempiere;
 import org.compiere.model.MClient;
 import org.compiere.model.MSession;
-import org.compiere.model.MSysConfig;
+//import org.compiere.model.MSysConfig;
 import org.compiere.model.Query;
 import org.compiere.model.ServerStateChangeEvent;
 import org.compiere.model.ServerStateChangeListener;
@@ -352,9 +352,10 @@ public class PackInApplicationActivator extends AbstractActivator{
 				Adempiere.getThreadPoolExecutor().execute(new Runnable() {			
 					@Override
 					public void run() {
-						int timeout = MSysConfig.getIntValue(MSysConfig.AUTOMATIC_PACKIN_INITIAL_DELAY, 120) * 1000;
-						String folders = MSysConfig.getValue(MSysConfig.AUTOMATIC_PACKIN_FOLDERS);
-						automaticPackin(timeout, folders, true);
+						// liangwei, comment auto pack in from folder migration
+//						int timeout = MSysConfig.getIntValue(MSysConfig.AUTOMATIC_PACKIN_INITIAL_DELAY, 120) * 1000;
+//						String folders = MSysConfig.getValue(MSysConfig.AUTOMATIC_PACKIN_FOLDERS);
+//						automaticPackin(timeout, folders, true);
 					}
 				});
 			} else {
@@ -362,9 +363,10 @@ public class PackInApplicationActivator extends AbstractActivator{
 					@Override
 					public void stateChange(ServerStateChangeEvent event) {
 						if (event.getEventType() == ServerStateChangeEvent.SERVER_START && service != null) {
-							int timeout = MSysConfig.getIntValue(MSysConfig.AUTOMATIC_PACKIN_INITIAL_DELAY, 120) * 1000;
-							String folders = MSysConfig.getValue(MSysConfig.AUTOMATIC_PACKIN_FOLDERS);
-							automaticPackin(timeout, folders, true);
+							// liangwei, comment auto pack in from folder migration
+//							int timeout = MSysConfig.getIntValue(MSysConfig.AUTOMATIC_PACKIN_INITIAL_DELAY, 120) * 1000;
+//							String folders = MSysConfig.getValue(MSysConfig.AUTOMATIC_PACKIN_FOLDERS);
+//							automaticPackin(timeout, folders, true);
 						}					
 					}
 				});

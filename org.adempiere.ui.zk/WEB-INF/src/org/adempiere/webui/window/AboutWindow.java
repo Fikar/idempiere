@@ -182,11 +182,12 @@ public class AboutWindow extends Window implements EventListener<Event> {
 		tabPanel.setParent(tabPanels);
 
 		//Credit
-		tab = new Tab();
-		tab.setLabel(Msg.getMsg(Env.getCtx(), "Credits"));
-		tab.setParent(tabs);
-		tabPanel = createCredit();
-		tabPanel.setParent(tabPanels);
+		// liangwei, comment credit
+//		tab = new Tab();
+//		tab.setLabel(Msg.getMsg(Env.getCtx(), "Credits"));
+//		tab.setParent(tabs);
+//		tabPanel = createCredit();
+//		tabPanel.setParent(tabPanels);
 
 		//Info
 		tab = new Tab();

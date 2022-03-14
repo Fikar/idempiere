@@ -2,8 +2,8 @@ package org.adempiere.webui.window;
 
 import java.util.List;
 
-import org.adempiere.report.jasper.JRViewerProvider;
-import org.adempiere.report.jasper.JRViewerProviderList;
+//import org.adempiere.report.jasper.JRViewerProvider;
+//import org.adempiere.report.jasper.JRViewerProviderList;
 import org.adempiere.webui.apps.AEnv;
 import org.adempiere.webui.component.Window;
 import org.adempiere.webui.part.WindowContainer;
@@ -13,7 +13,8 @@ import org.compiere.model.PrintInfo;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperPrint;
 
-public class ZkJRViewerProvider implements JRViewerProvider, JRViewerProviderList {
+//public class ZkJRViewerProvider implements JRViewerProvider, JRViewerProviderList {
+public class ZkJRViewerProvider {
 
 	public void openViewer(final JasperPrint jasperPrint, final String title, final PrintInfo printInfo)
 			throws JRException {

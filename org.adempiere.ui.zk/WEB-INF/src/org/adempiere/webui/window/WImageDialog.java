@@ -194,9 +194,10 @@ public class WImageDialog extends Window implements EventListener<Event>
 		ZKUpdateUtil.setHflex(mainLayout, "1");
 		ZKUpdateUtil.setVflex(mainLayout, "1");
 		
-		fileButton.setLabel("Upload");
+		// liangwei, 上传、截屏按钮文字走翻译
+		fileButton.setLabel(Msg.getMsg(Env.getCtx(),"Upload"));
 		LayoutUtils.addSclass("txt-btn", fileButton);
-		captureButton.setLabel("Capture");
+		captureButton.setLabel(Msg.getMsg(Env.getCtx(),"Capture"));
 		LayoutUtils.addSclass("txt-btn", captureButton);
 		
 		North north = new North();

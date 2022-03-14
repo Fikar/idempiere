@@ -177,6 +177,11 @@ public final class Ini implements Serializable
 	public static final String P_LOAD_TAB_META_DATA_BG = "LoadTabMetaDataBackground";
 
 	public static final String DEFAULT_LOAD_TAB_META_DATA_BG = "N";
+	
+	// liangwei
+	/** Postgresql Native */
+	private static final String P_POSTGRE_SQL_NATIVE = "PostgreSQLNative";
+	private static final String DEFAULT_POSTGRE_SQL_NATIVE = "Y";
 
 	/** Ini Properties		*/
 	private static final String[]   PROPERTIES = new String[] {
@@ -194,7 +199,8 @@ public final class Ini implements Serializable
 		P_SINGLE_INSTANCE_PER_WINDOW,
 		P_OPEN_WINDOW_MAXIMIZED,
 		P_WARNING, P_WARNING_de,
-		P_CHARSET, P_LOAD_TAB_META_DATA_BG
+		P_CHARSET, P_LOAD_TAB_META_DATA_BG,
+		P_POSTGRE_SQL_NATIVE
 	};
 	/** Ini Property Values	*/
 	private static final String[]   VALUES = new String[] {
@@ -212,7 +218,8 @@ public final class Ini implements Serializable
 		DEFAULT_SINGLE_INSTANCE_PER_WINDOW?"Y":"N",
 		DEFAULT_OPEN_WINDOW_MAXIMIZED?"Y":"N",
 		DEFAULT_WARNING, DEFAULT_WARNING_de,
-		DEFAULT_CHARSET, DEFAULT_LOAD_TAB_META_DATA_BG
+		DEFAULT_CHARSET, DEFAULT_LOAD_TAB_META_DATA_BG,
+		DEFAULT_POSTGRE_SQL_NATIVE
 	};
 
 	/**	Container for Properties    */

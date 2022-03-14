@@ -95,15 +95,15 @@ public class ConfigurationConsole {
 			{
 				data.setAdminEMail(adminEMail);
 			}
-			String error = data.testMail();
-			if (error != null && error.trim().length() > 0)
-			{
-				writer.println("Mail setting validation error: " + error);
-				mailServer(reader, writer);
-				mailUser(reader, writer);
-				mailPassword(reader, writer);
-				continue;
-			}
+//			String error = data.testMail();
+//			if (error != null && error.trim().length() > 0)
+//			{
+//				writer.println("Mail setting validation error: " + error);
+//				mailServer(reader, writer);
+//				mailUser(reader, writer);
+//				mailPassword(reader, writer);
+//				continue;
+//			}
 			break;
 		}
 	}

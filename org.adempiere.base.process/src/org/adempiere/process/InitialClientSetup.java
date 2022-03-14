@@ -247,11 +247,15 @@ public class InitialClientSetup extends SvrProcess
 			if (! EMail.validate(p_NormalUserEmail)) 
 				throw new AdempiereException(Msg.getMsg(Env.getCtx(), "NormalUserEmail") + " " + p_NormalUserEmail + " " + Msg.getMsg(Env.getCtx(), "is incorrect"));
 		}
-		if (Util.isEmpty(p_CoAFile, true))
-			p_CoAFile = MSysConfig.getValue(MSysConfig.DEFAULT_COA_PATH,
-					Adempiere.getAdempiereHome() + File.separator + "data"
-							+ File.separator + "import"
-							+ File.separator + "AccountingDefaultsOnly.csv");
+		if (Util.isEmpty(p_CoAFile, true)) {
+			// liangwei, decide different path of coa file
+			String coaPath;
+			if (Env.DEBUG())
+				coaPath = Adempiere.getAdempiereHome() + File.separator + "org.adempiere.server-feature" + File.separator + "data" + File.separator + "import" + File.separator + "AccountingDefaultsOnly.csv";
+			else
+				coaPath = Adempiere.getAdempiereHome() + File.separator + "data" + File.separator + "import" + File.separator + "AccountingDefaultsOnly.csv";
+			p_CoAFile = MSysConfig.getValue(MSysConfig.DEFAULT_COA_PATH, coaPath);
+		}
 		File coaFile = new File(p_CoAFile);
 		if (!coaFile.exists())
 			throw new AdempiereException(Msg.getMsg(Env.getCtx(), "CoaFile") + " " + p_CoAFile + " " + Msg.getMsg(Env.getCtx(), "does not exist") );

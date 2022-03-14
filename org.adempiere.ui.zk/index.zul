@@ -21,7 +21,7 @@ Copyright (C) 2007 Ashley G Ramdass.
 "?>
 <zk>
 <script><![CDATA[
-if (window.location.protocol == 'https:') {
+if (true) {
 
   zk.load("jawwa.atmosphere");
   zk.load("org.idempiere.websocket");
@@ -261,6 +261,6 @@ else {
 }
 ]]>
 </script>
-<include src="${themePreference}" if="${execution.getScheme() == 'https'}"/>
-<window use="org.adempiere.webui.AdempiereWebUI" if="${execution.getScheme() == 'https'}"/>
+<include src="${themePreference}"/>
+<window use="org.adempiere.webui.AdempiereWebUI"/>
 </zk>

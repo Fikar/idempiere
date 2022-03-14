@@ -222,13 +222,14 @@ public class RolePanel extends Window implements EventListener<Event>, Deferrabl
         table.appendChild(tr);
     	//td = new Td();
     	//tr.appendChild(td);
-    	td = new Td();
-    	tr.appendChild(td);
-    	td.setSclass(ITheme.LOGIN_LABEL_CLASS);
-		div = new Div();
-		div.setStyle("text-align: right; text-decoration: underline");
-		div.appendChild(lblDef);
-    	td.appendChild(div);
+        // liangwei, 注释掉缺省标签
+//    	td = new Td();
+//    	tr.appendChild(td);
+//    	td.setSclass(ITheme.LOGIN_LABEL_CLASS);
+//		div = new Div();
+//		div.setStyle("text-align: right; text-decoration: underline");
+//		div.appendChild(lblDef);
+//    	td.appendChild(div);
 
     	tr = new Tr();
         tr.setId("rowOrganisation");
@@ -242,17 +243,18 @@ public class RolePanel extends Window implements EventListener<Event>, Deferrabl
     	tr.appendChild(td);
     	td.appendChild(lstOrganisation);
 
-    	tr = new Tr();
-        tr.setId("rowWarehouse");
-        table.appendChild(tr);
-    	td = new Td();
-    	tr.appendChild(td);
-    	td.setSclass(ITheme.LOGIN_LABEL_CLASS);
-    	td.appendChild(lblWarehouse.rightAlign());
-    	td = new Td();
-    	td.setSclass(ITheme.LOGIN_FIELD_CLASS);
-    	tr.appendChild(td);
-    	td.appendChild(lstWarehouse);
+    	// liangwei, 注释掉仓库标签和下拉选框
+//    	tr = new Tr();
+//      tr.setId("rowWarehouse");
+//      table.appendChild(tr);
+//    	td = new Td();
+//    	tr.appendChild(td);
+//    	td.setSclass(ITheme.LOGIN_LABEL_CLASS);
+//    	td.appendChild(lblWarehouse.rightAlign());
+//    	td = new Td();
+//    	td.setSclass(ITheme.LOGIN_FIELD_CLASS);
+//    	tr.appendChild(td);
+//    	td.appendChild(lstWarehouse);
 
     	tr = new Tr();
         tr.setId("rowDate");

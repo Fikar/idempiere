@@ -510,8 +510,15 @@ public class GridField
 			}
 			else
 			{
-				boolean retValue = !Evaluator.evaluateLogic(this, m_vo.ReadOnlyLogic);
-				if (log.isLoggable(Level.FINEST)) log.finest(m_vo.ColumnName + " R/O(" + m_vo.ReadOnlyLogic + ") => R/W-" + retValue);
+				// liangwei, pass value into closure
+//				boolean retValue = !Evaluator.evaluateLogic(this, m_vo.ReadOnlyLogic);
+//				if (log.isLoggable(Level.FINEST)) log.finest(m_vo.ColumnName + " R/O(" + m_vo.ReadOnlyLogic + ") => R/W-" + retValue);
+				Evaluatee evaluatee = new Evaluatee() {
+					public String get_ValueAsString(String variableName) {
+						return GridField.this.get_ValueAsString(ctx, variableName);
+					}
+				};
+				boolean retValue = !Evaluator.evaluateLogic(evaluatee, m_vo.ReadOnlyLogic);
 				if (!retValue)
 					return false;
 			}
@@ -1065,7 +1072,8 @@ public class GridField
 		}
 		
 		//	Search not cached
-		if (getDisplayType() == DisplayType.Search && m_lookup != null)
+		// liangwei, Search, Table and TableDir not cached
+		if ((getDisplayType() == DisplayType.Search || getDisplayType() == DisplayType.Table || getDisplayType() == DisplayType.TableDir)  && m_lookup != null)
 		{
 			// need to re-set invalid values - OK BPartner in PO Line - not OK SalesRep in Invoice
 			if (m_lookup.getDirect(m_value, false, true) == null)

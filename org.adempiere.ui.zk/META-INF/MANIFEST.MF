@@ -170,7 +170,6 @@ Export-Package: fi.jawsy.jawwa.zk.atmosphere,
  web.js.zkforge.keylistener,
  web.js.zkforge.keylistener.mold
 Require-Bundle: org.adempiere.base;bundle-version="0.0.0",
- org.adempiere.report.jasper;bundle-version="0.0.0",
  org.adempiere.server;bundle-version="0.0.0",
  org.adempiere.ui;bundle-version="0.0.0",
  org.idempiere.zk.extra;bundle-version="0.0.0",
@@ -191,7 +190,7 @@ Require-Bundle: org.adempiere.base;bundle-version="0.0.0",
  com.github.librepdf.openpdf-fonts-extra;bundle-version="1.3.26"
 Bundle-Activator: org.adempiere.webui.WebUIActivator
 Eclipse-ExtensibleAPI: true
-Web-ContextPath: webui
+Web-ContextPath: web
 Service-Component: OSGI-INF/*.xml
 Bundle-ActivationPolicy: lazy
 Automatic-Module-Name: org.adempiere.ui.zk

@@ -16,6 +16,8 @@
  *****************************************************************************/
 package org.compiere.util;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.sql.PreparedStatement;
@@ -29,9 +31,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
@@ -59,6 +63,9 @@ import org.compiere.model.MZoomCondition;
 import org.compiere.model.PO;
 import org.compiere.process.ProcessInfo;
 import org.compiere.process.SvrProcess;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonParser;
 
 /**
  *  System Environment and static variables.
@@ -110,6 +117,8 @@ public final class Env
 	public static final String LANGUAGE = "#AD_Language";
 	public static final String LANGUAGE_NAME = "#LanguageName";
 	public static final String LOCAL_HTTP_ADDRESS = "#LocalHttpAddr";
+	// liangwei
+	public static final String SERVER_HTTP_ADDRESS = "#ServerHttpAddr";
 	public static final String LOCALE = "#Locale";
 	public static final String M_PRICELIST_ID = "#M_PriceList_ID";
 	public static final String M_PRODUCT_CATEGORY_ID = "#M_Product_Category_ID";
@@ -2101,6 +2110,57 @@ public final class Env
 				}
 			}
 		}
+	}
+	
+	// liangwei, add debug mode & custom params
+	private static final Map<String, String> params = new HashMap<>();
+	private static boolean debugMode = false;
+	
+	public static void initParams() {
+		String envName = Ini.getAdempiereHome();
+		if (envName == null)
+			return;
+		envName += File.separator + "idempiereEnv.properties";
+		File envFile = new File(envName);
+		if (!envFile.exists())
+			return;
+
+		Properties env = new Properties();
+		try
+		{
+			FileInputStream in = new FileInputStream(envFile);
+			env.load(in);
+			in.close();
+		}
+		catch (Exception e)
+		{
+			return;
+		}
+		if (env.containsKey("ADEMPIERE_PARAM_JSON")) {
+			try {
+				String jsonString = (String)env.get("ADEMPIERE_PARAM_JSON");
+				JsonArray array = JsonParser.parseString(jsonString).getAsJsonArray();
+				array.forEach((o) -> {
+					params.put(o.getAsJsonObject().get("key").getAsString(), o.getAsJsonObject().get("val").getAsString());
+				});
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		if (env.containsKey("ADEMPIERE_DEBUG_MODE"))
+			debugMode = ((String)env.get("ADEMPIERE_DEBUG_MODE")).equals("Y") ? true : false;
+	}
+	
+	public static String getParam(String key) {
+		return params.containsKey(key) ? params.get(key) : null;
+	}
+	public static boolean DEBUG() { return debugMode; }
+	
+	// liangwei, get temp variable then delete it, to avoid pollute Env
+	public static String getAndDeleteFromCtx(String key) {
+		String value = getCtx().getProperty(key);
+		getCtx().remove(key);
+		return value == null ? "" : value;
 	}
 
 }   //  Env

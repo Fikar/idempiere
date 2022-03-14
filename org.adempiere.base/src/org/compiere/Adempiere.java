@@ -572,11 +572,11 @@ public final class Adempiere
 	}   //  startup
 
 	private static void loadDBProvider() {
-		try {
-			Adempiere.class.getClassLoader().loadClass("org.adempiere.db.oracle.config.ConfigOracle");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+//		try {
+//			Adempiere.class.getClassLoader().loadClass("org.adempiere.db.oracle.config.ConfigOracle");
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
 		try {
 			Adempiere.class.getClassLoader().loadClass("org.adempiere.db.postgresql.config.ConfigPostgreSQL");
 		} catch (Exception e) {

@@ -3,21 +3,21 @@
    <feature url="features/org.adempiere.base.feature_9.0.0.qualifier.jar" id="org.adempiere.base.feature" version="9.0.0.qualifier">
       <category name="idempiere.server"/>
    </feature>
-   <feature url="features/org.adempiere.payment.processor.feature_9.0.0.qualifier.jar" id="org.adempiere.payment.processor.feature" version="9.0.0.qualifier">
+<!--    <feature url="features/org.adempiere.payment.processor.feature_9.0.0.qualifier.jar" id="org.adempiere.payment.processor.feature" version="9.0.0.qualifier">
       <category name="idempiere.server"/>
-   </feature>
+   </feature> -->
    <feature url="features/org.adempiere.pipo.feature_9.0.0.qualifier.jar" id="org.adempiere.pipo.feature" version="9.0.0.qualifier">
       <category name="idempiere.server"/>
    </feature>
-   <feature url="features/org.adempiere.replication.feature_9.0.0.qualifier.jar" id="org.adempiere.replication.feature" version="9.0.0.qualifier">
+<!--    <feature url="features/org.adempiere.replication.feature_9.0.0.qualifier.jar" id="org.adempiere.replication.feature" version="9.0.0.qualifier">
       <category name="idempiere.server"/>
-   </feature>
-   <feature url="features/org.adempiere.replication.server.feature_9.0.0.qualifier.jar" id="org.adempiere.replication.server.feature" version="9.0.0.qualifier">
+   </feature> -->
+<!--    <feature url="features/org.adempiere.replication.server.feature_9.0.0.qualifier.jar" id="org.adempiere.replication.server.feature" version="9.0.0.qualifier">
       <category name="idempiere.server"/>
-   </feature>
-   <feature url="features/org.adempiere.report.jasper.feature_9.0.0.qualifier.jar" id="org.adempiere.report.jasper.feature" version="9.0.0.qualifier">
+   </feature> -->
+<!--    <feature url="features/org.adempiere.report.jasper.feature_9.0.0.qualifier.jar" id="org.adempiere.report.jasper.feature" version="9.0.0.qualifier">
       <category name="idempiere.server"/>
-   </feature>
+   </feature> -->
    <feature url="features/org.adempiere.server.feature_9.0.0.qualifier.jar" id="org.adempiere.server.feature" version="9.0.0.qualifier">
       <category name="idempiere.server"/>
    </feature>
@@ -42,15 +42,15 @@
    <feature url="features/org.idempiere.zk.feature_9.0.0.qualifier.jar" id="org.idempiere.zk.feature" version="9.0.0.qualifier">
       <category name="idempiere.server"/>
    </feature>
-   <feature url="features/org.idempiere.webservices.feature_9.0.0.qualifier.jar" id="org.idempiere.webservices.feature" version="9.0.0.qualifier">
+<!--    <feature url="features/org.idempiere.webservices.feature_9.0.0.qualifier.jar" id="org.idempiere.webservices.feature" version="9.0.0.qualifier">
       <category name="idempiere.server"/>
-   </feature>
+   </feature> -->
    <feature url="features/org.eclipse.equinox.executable_3.8.1200.v20210527-0259.jar" id="org.eclipse.equinox.executable" version="3.8.1200.v20210527-0259">
       <category name="idempiere.server"/>
    </feature>
-   <feature id="org.idempiere.test.feature">
+<!--    <feature id="org.idempiere.test.feature">
       <category name="test"/>
-   </feature>
+   </feature> -->
    <category-def name="idempiere.repository" label="iDempiere Repository"/>
    <category-def name="idempiere.server" label="iDempiere Server">
       <category name="idempiere.repository"/>

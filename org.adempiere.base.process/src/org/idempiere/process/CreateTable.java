@@ -40,6 +40,11 @@ import static org.compiere.model.SystemIDs.REFERENCE_DOCUMENTACTION;
 import static org.compiere.model.SystemIDs.REFERENCE_DOCUMENTSTATUS;
 import static org.compiere.model.SystemIDs.REFERENCE_POSTED;
 
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
 
 import org.adempiere.exceptions.AdempiereException;
@@ -56,9 +61,13 @@ import org.compiere.model.X_AD_Workflow;
 import org.compiere.process.DocAction;
 import org.compiere.process.ProcessInfoParameter;
 import org.compiere.process.SvrProcess;
+import org.compiere.util.AdempiereUserError;
+import org.compiere.util.CLogger;
+import org.compiere.util.DB;
 import org.compiere.util.DisplayType;
 import org.compiere.util.Msg;
 import org.compiere.util.Util;
+import org.compiere.util.ValueNamePair;
 import org.compiere.wf.MWFNode;
 import org.compiere.wf.MWFNodeNext;
 import org.compiere.wf.MWorkflow;
@@ -99,6 +108,10 @@ public class CreateTable extends SvrProcess {
 	private boolean p_isCreateColSalesRepID = false;
 	private boolean p_isCreateColAD_User_ID = false;
 	private int p_record_ID = 0;
+	
+	// liangwei, add column to db; add flag if table is new
+	private boolean isNewTable = false;
+	private Set<String> newColumnSet = new HashSet<>();
 
 	final private static int LENGTH_0 = 0;
 	final private static int LENGTH_1 = 1;
@@ -219,7 +232,7 @@ public class CreateTable extends SvrProcess {
 	 *  @return Message
 	 *  @throws Exception
 	 */
-	protected String doIt() {
+	protected String doIt() throws Exception {
 
 		if (!p_isCreateKeyColumn && p_isCreateTranslationTable)
 			return ("@Error@ Main table must have a key column if you want to handle translations");
@@ -234,8 +247,11 @@ public class CreateTable extends SvrProcess {
 			elementID = M_Element.get(getCtx(), p_tableName + "_ID");
 			if (elementID == null) { // Create Element <TableName> + _ID
 				elementID = new M_Element(getCtx(), p_tableName + "_ID", p_entityType, get_TrxName());
-				elementID.setName(p_name);
-				elementID.setPrintName(p_name);
+//				elementID.setName(p_name);
+//				elementID.setPrintName(p_name);
+				// liangwei, add id suffix to primary key name
+				elementID.setName(p_name + "ID");
+				elementID.setPrintName(p_name + "ID");
 				elementID.setDescription(p_description);
 				elementID.saveEx();
 			}
@@ -356,6 +372,11 @@ public class CreateTable extends SvrProcess {
 			addLog(Msg.getMsg(getCtx(), "TrlCreatedSyncColumnValidateIndex"));
 		}
 
+		// liangwei, if table not exists, create table to db, else add column to db. won't modify exists column here. use Synchronize column to do modify.
+		if (isNewTable)
+			executeCreateSQL(table);
+		else
+			executeAddSQL(table);
 		return "@ProcessOK@";
 	}
 
@@ -409,6 +430,9 @@ public class CreateTable extends SvrProcess {
 				throw new AdempiereException("Table " + p_tableName + " already exists");
 			}
 		}
+		
+		// liangwei, if table is new
+		isNewTable = !table.columnExists(p_tableName + "_ID");
 
 		// Mandatory columns
 		createColumn(table, "AD_Client_ID"); 
@@ -608,6 +632,9 @@ public class CreateTable extends SvrProcess {
 		}
 
 		column.saveEx();
+		
+		// liangwei, add column to db
+		newColumnSet.add(columnName);
 		return column.getAD_Column_ID();
 	}
 
@@ -681,6 +708,119 @@ public class CreateTable extends SvrProcess {
 		wfnn.setIsStdUserWorkflow(isStdUserWF);
 		wfnn.setEntityType(p_entityType);
 		wfnn.saveEx();
+	}
+	
+	// liangwei, create table to db
+	private void executeCreateSQL(MTable table) throws Exception {
+		Connection conn = null;
+		try {
+			conn = DB.getConnectionRO();
+			DatabaseMetaData md = conn.getMetaData();
+			String catalog = DB.getDatabase().getCatalog();
+			String schema = DB.getDatabase().getSchema();
+			String tableName = table.getTableName();
+			if (md.storesUpperCaseIdentifiers())
+				tableName = tableName.toUpperCase();
+			else if (md.storesLowerCaseIdentifiers())
+				tableName = tableName.toLowerCase();
+			String sql = table.getSQLCreate();
+			MColumn[] cols = table.getColumns(false);
+			for (MColumn col : cols)
+			{
+				String fkConstraintSql = MColumn.getForeignKeyConstraintSql(md, catalog, schema, tableName, table, col, false);
+				if (fkConstraintSql != null && fkConstraintSql.length() > 0)
+					sql += fkConstraintSql;
+			}
+			int no = 0;
+			String statements[] = sql.split(DB.SQLSTATEMENT_SEPARATOR);
+			for (int i = 0; i < statements.length; i++)
+			{
+				int count = DB.executeUpdateEx(statements[i], get_TrxName());
+				addLog (0, null, new BigDecimal(count), statements[i]);
+				no += count;
+			}
+			if (no == -1)
+			{
+				StringBuilder msg = new StringBuilder("@Error@ ");
+				ValueNamePair pp = CLogger.retrieveError();
+				if (pp != null)
+					msg = new StringBuilder(pp.getName()).append(" - ");
+				msg.append(sql);
+				throw new AdempiereUserError (msg.toString());
+			}
+		} finally {
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (Exception e) {}
+			}
+		}
+	}
+	
+	// liangwei, add column to db
+	private void executeAddSQL(MTable table) throws Exception {
+		Connection conn = null;
+		try {
+			conn = DB.getConnectionRO();
+			DatabaseMetaData md = conn.getMetaData();
+			String catalog = DB.getDatabase().getCatalog();
+			String schema = DB.getDatabase().getSchema();
+			String tableName = table.getTableName();
+			if (md.storesUpperCaseIdentifiers())
+			{
+				tableName = tableName.toUpperCase();
+			}
+			else if (md.storesLowerCaseIdentifiers())
+			{
+				tableName = tableName.toLowerCase();
+			}
+			
+			StringBuilder sb = new StringBuilder();
+			for (String columnName : newColumnSet) {
+				MColumn column = table.getColumn(columnName);
+				String addSql = column.getSQLAdd(table);
+				sb.append(addSql);
+				String fkConstraintSql = MColumn.getForeignKeyConstraintSql(md, catalog, schema, tableName, table, column, false);
+				if (fkConstraintSql != null && fkConstraintSql.length() > 0)
+					sb.append(fkConstraintSql);
+				sb.append(";");
+			}
+			
+			String sql = sb.toString();
+			int no = 0;
+			if (sql.indexOf(DB.SQLSTATEMENT_SEPARATOR) == -1)
+			{
+				no = DB.executeUpdate(sql, false, get_TrxName());
+				addLog (0, null, new BigDecimal(no), sql);
+			}
+			else
+			{
+				String statements[] = sql.split(DB.SQLSTATEMENT_SEPARATOR);
+				for (int i = 0; i < statements.length; i++)
+				{
+					int count = DB.executeUpdateEx(statements[i], get_TrxName());
+					addLog (0, null, new BigDecimal(count), statements[i]);
+					no += count;
+				}
+			}
+	
+			if (no == -1)
+			{
+				StringBuilder msg = new StringBuilder("@Error@ ");
+				ValueNamePair pp = CLogger.retrieveError();
+				if (pp != null)
+					msg = new StringBuilder(pp.getName()).append(" - ");
+				msg.append(sql);
+				throw new AdempiereUserError (msg.toString());
+			}
+			commitEx();
+		} finally {
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (Exception e) {}
+			}
+		}
 	}
 
 }	//	CreateTable

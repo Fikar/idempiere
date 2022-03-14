@@ -1909,6 +1909,26 @@ public final class MRole extends X_AD_Role implements ImmutablePOSupport
 			{
 				DB.close(rs, pstmt);
 			}
+			// liangwei, 新增无AD_Form_Access的Form，任何角色均可访问
+//			String sql2 = "SELECT AD_Form_ID FROM AD_FORM WHERE AD_Form_ID NOT IN (SELECT DISTINCT(AD_Form_ID) FROM AD_Form_Access) AND IsActive = 'Y';";
+//			PreparedStatement pstmt2 = null;
+//			ResultSet rs2 = null;
+//			try {
+//				pstmt2 = DB.prepareStatement(sql2, get_TrxName());
+//				rs2 = pstmt2.executeQuery();
+//				while (rs2.next()) {
+//					Integer formId = Integer.valueOf(rs2.getInt(1));
+//					directAccess.put(formId, Boolean.TRUE);
+//				}
+//			}
+//			catch (Exception e)
+//			{
+//				log.log(Level.SEVERE, sql2, e);
+//			}
+//			finally
+//			{
+//				DB.close(rs2, pstmt2);
+//			}
 			setAccessMap("m_formAccess", mergeAccess(getAccessMap("m_formAccess"), directAccess, true));
 		}	//	reload
 		Boolean retValue = m_formAccess.get(AD_Form_ID);

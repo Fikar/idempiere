@@ -43,6 +43,8 @@ import org.compiere.util.DB;
 import org.compiere.util.DisplayType;
 import org.compiere.util.Util;
 
+import com.google.common.base.CaseFormat;
+
 /**
  *  Generate Model Classes extending PO.
  *  Base class for CMP interface - will be extended to create byte code directly
@@ -396,6 +398,16 @@ public class ModelClassGenerator
 		}
 
 		StringBuilder sb = new StringBuilder();
+		
+		// liangwei, convert columnName from dash case to upper camel case
+		String camelColumnName = columnName;
+		if (!ModelInterfaceGenerator.isReservedColumn(columnName)) {
+			String upperColumnName = columnName.toUpperCase();
+			camelColumnName = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, columnName);
+			if (upperColumnName.endsWith("_ID") || upperColumnName.endsWith("_UU")) {
+				camelColumnName = camelColumnName.substring(0, camelColumnName.length() - 2) + "_" + camelColumnName.substring(camelColumnName.length() - 2).toUpperCase();
+			}
+		}
 
 		// TODO - New functionality
 		// 1) Must understand which class to reference
@@ -410,7 +422,7 @@ public class ModelClassGenerator
 				.append("\tpublic ").append(referenceClassName).append(" get").append(fieldName).append("() throws RuntimeException").append(NL)
 				.append("\t{").append(NL)
 				.append("\t\treturn (").append(referenceClassName).append(")MTable.get(getCtx(), ").append(referenceClassName).append(".Table_ID)").append(NL)
-				.append("\t\t\t.getPO(get").append(columnName).append("(), get_TrxName());").append(NL)
+				.append("\t\t\t.getPO(get").append(camelColumnName).append("(), get_TrxName());").append(NL)
 				/**/
 				.append("\t}").append(NL)
 				;
@@ -423,7 +435,7 @@ public class ModelClassGenerator
 		generateJavaSetComment(columnName, Name, Description, sb);
 
 		//	public void setColumn (xxx variable)
-		sb.append("\tpublic void set").append(columnName).append(" (").append(dataType).append(" ").append(columnName).append(")").append(NL)
+		sb.append("\tpublic void set").append(camelColumnName).append(" (").append(dataType).append(" ").append(columnName).append(")").append(NL)
 			.append("\t{").append(NL)
 		;
 				
@@ -478,7 +490,7 @@ public class ModelClassGenerator
 		//	Mandatory call in constructor
 		if (isMandatory)
 		{
-			mandatory.append("\t\t\tset").append(columnName).append(" (");
+			mandatory.append("\t\t\tset").append(camelColumnName).append(" (");
 			if (clazz.equals(Integer.class))
 				mandatory.append("0");
 			else if (clazz.equals(Boolean.class))
@@ -512,12 +524,12 @@ public class ModelClassGenerator
 		if (clazz.equals(Boolean.class))
 		{
 			sb.append(" is");
-			if (columnName.toLowerCase().startsWith("is"))
-				sb.append(columnName.substring(2));
+			if (camelColumnName.toLowerCase().startsWith("is"))
+				sb.append(camelColumnName.charAt(2) == '_' ? camelColumnName.substring(3) : camelColumnName.substring(2));
 			else
-				sb.append(columnName);
+				sb.append(camelColumnName);
 		} else {
-			sb.append(" get").append(columnName);
+			sb.append(" get").append(camelColumnName);
 		}
 		sb.append("()").append(NL)
 			.append("\t{").append(NL)
@@ -682,6 +694,10 @@ public class ModelClassGenerator
 							nameClean.append("Eq");
 						else if (c == '~')
 							nameClean.append("Like");
+						else if (c == '≤')
+							nameClean.append("LeEq");
+						else if (c == '≥')
+							nameClean.append("GtEq");
 						initCap = true;
 					}
 				}

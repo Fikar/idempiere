@@ -4,6 +4,7 @@
 **/seed/*.jar
 /org.adempiere.ui.zk/labelapplet.jar
 /org.adempiere.extend/test.properties
+/org.gogetter.*
 
 /.metadata/
 /PostgreSQL/

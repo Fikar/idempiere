@@ -31,6 +31,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 
 import org.compiere.Adempiere;
 import org.compiere.install.util.AEnv;
@@ -92,11 +93,12 @@ public class Setup extends JFrame implements ActionListener
 	private JMenuBar menuBar = new JMenuBar();
 	private JMenu menuFile = new JMenu();
 	private JMenuItem menuFileExit = new JMenuItem();
-	private JMenu menuHelp = new JMenu();
-	private JMenuItem menuHelpInfo = new JMenuItem();
+//	private JMenu menuHelp = new JMenu();
+//	private JMenuItem menuHelpInfo = new JMenuItem();
 	private JLabel statusBar = new JLabel();
 	private BorderLayout borderLayout = new BorderLayout();
 	private ConfigurationPanel configurationPanel = new ConfigurationPanel (statusBar);
+	private JScrollPane panelPane = new JScrollPane(configurationPanel);
 
 	public static Setup instance;
 
@@ -116,18 +118,20 @@ public class Setup extends JFrame implements ActionListener
 		menuFile.setText(res.getString("File"));
 		menuFileExit.setText(res.getString("Exit"));
 		menuFileExit.addActionListener(this);
-		menuHelp.setText(res.getString("Help"));
-		menuHelpInfo.setText(res.getString("Help"));
-		menuHelpInfo.addActionListener(this);
+//		menuHelp.setText(res.getString("Help"));
+//		menuHelpInfo.setText(res.getString("Help"));
+//		menuHelpInfo.addActionListener(this);
 		borderLayout.setHgap(5);
 		borderLayout.setVgap(5);
 		menuFile.add(menuFileExit);
-		menuHelp.add(menuHelpInfo);
+//		menuHelp.add(menuHelpInfo);
 		menuBar.add(menuFile);
-		menuBar.add(menuHelp);
+//		menuBar.add(menuHelp);
 		this.setJMenuBar(menuBar);
 		contentPane.add(statusBar, BorderLayout.SOUTH);
-		contentPane.add(configurationPanel, BorderLayout.CENTER);
+//		contentPane.add(configurationPanel, BorderLayout.CENTER);
+		panelPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+		contentPane.add(panelPane, BorderLayout.CENTER);
 	}	//	jbInit
 
 	/**
@@ -138,8 +142,8 @@ public class Setup extends JFrame implements ActionListener
 	{
 		if (e.getSource() == menuFileExit)
 			System.exit(0);
-		else if (e.getSource() == menuHelpInfo)
-			new Setup_Help(this);
+//		else if (e.getSource() == menuHelpInfo)
+//			new Setup_Help(this);
 	}	//	actionPerformed
 
 

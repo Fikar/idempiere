@@ -76,6 +76,9 @@ public final class ConfirmPanel extends Div
     public static final String A_PATTRIBUTE = "PAttribute";
     /** Action String New.   */
     public static final String A_NEW = "New";
+    // liangwei, add Edit button
+    /** Action String Edit.   */
+    public static final String A_EDIT = "Edit";
 
     private boolean  m_withText = false;
 

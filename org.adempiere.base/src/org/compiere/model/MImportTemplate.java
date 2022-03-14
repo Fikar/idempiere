@@ -45,6 +45,8 @@ public class MImportTemplate extends X_AD_ImportTemplate implements ImmutablePOS
 	 * 
 	 */
 	private static final long serialVersionUID = -4681075469110529774L;
+	// liangwei, add utf-8 bom header
+	public static final String UTF8_BOM_HEADER = "\uFEFF";
 	
 	/**	Logger			*/
 	@SuppressWarnings("unused")
@@ -197,6 +199,8 @@ public class MImportTemplate extends X_AD_ImportTemplate implements ImmutablePOS
 			String line = null;
 			while ((line = reader.readLine()) != null) {
 				if (firstLine == null) {
+					if (line.startsWith(UTF8_BOM_HEADER))
+						line = line.substring(1);
 					firstLine = line;
 					/* Validate that m_file_istream header is CSVHeader or AliasCSVHeader */
 					if (   firstLine.equals(getCSVHeader())

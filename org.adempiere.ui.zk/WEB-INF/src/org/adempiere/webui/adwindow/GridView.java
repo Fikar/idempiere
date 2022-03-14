@@ -16,9 +16,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.swing.table.AbstractTableModel;
 
@@ -61,10 +63,12 @@ import org.zkoss.zk.ui.util.Clients;
 import org.zkoss.zul.Cell;
 import org.zkoss.zul.Center;
 import org.zkoss.zul.Column;
+import org.zkoss.zul.Decimalbox;
 import org.zkoss.zul.Div;
 import org.zkoss.zul.Frozen;
 import org.zkoss.zul.Paging;
 import org.zkoss.zul.Row;
+import org.zkoss.zul.Textbox;
 import org.zkoss.zul.Vlayout;
 import org.zkoss.zul.event.ZulEvents;
 import org.zkoss.zul.impl.CustomGridDataLoader;
@@ -158,6 +162,11 @@ public class GridView extends Vlayout implements EventListener<Event>, IdSpace, 
 	private boolean showCurrentRowIndicatorColumn = true;
 
 	private String m_isAutoHideEmptyColumn;
+	
+	// liangwei, 增加监听按键换行
+	private boolean keepEditing;
+	private String focusedColumnName;
+	private Set<String> ctrlListenedColumns;
 
 	public GridView()
 	{
@@ -1161,6 +1170,9 @@ public class GridView extends Vlayout implements EventListener<Event>, IdSpace, 
 					if (e) {
 						gridTab.navigate(index);
 						retValue[0] = true;
+						// liangwei, 增加监听按键换行
+						if (keepEditing && !Util.isEmpty(focusedColumnName))
+							Events.echoEvent("onEditCurrentRowKeepColumn", this, null);
 					}
 				});
 				return retValue[0];
@@ -1292,6 +1304,9 @@ public class GridView extends Vlayout implements EventListener<Event>, IdSpace, 
 				} else if (c instanceof NumberBox) {
 					c = ((NumberBox)c).getDecimalbox();
 				}
+				// liangwei, 增加监听按键换行, 只读不监听
+				if (editor.isReadWrite())
+					registerCtrlKey(c, columnName);
 				Clients.response(new AuFocus(c));
 				break;
 			}
@@ -1434,5 +1449,41 @@ public class GridView extends Vlayout implements EventListener<Event>, IdSpace, 
 	
 	public boolean isShowCurrentRowIndicatorColumn() {
 		return showCurrentRowIndicatorColumn;
+	}
+	
+	// liangwei, 增加监听按键换行
+	private void registerCtrlKey(Component c, String columnName) {
+		if (!(c instanceof NumberBox || c instanceof Textbox || c instanceof Decimalbox))
+			return;
+		if (ctrlListenedColumns == null)
+			ctrlListenedColumns = new HashSet<>();
+		if (!ctrlListenedColumns.contains(columnName)) {
+//			((XulElement) c).setCtrlKeys("#pgdn");
+//			c.addEventListener(Events.ON_CTRL_KEY, evt -> onKeyDown(evt));
+			c.addEventListener(Events.ON_OK, evt -> onKeyDown(evt));
+			focusedColumnName = columnName;
+			ctrlListenedColumns.add(columnName);
+		}
+	}
+	
+	private void onKeyDown(Event evt) {
+		if (focusedColumnName == null)
+			return;
+		keepEditing = true;
+		int newRow = gridTab.getCurrentRow() + 1;
+		onSelectedRowChange(newRow);
+	}
+	
+	public void onEditCurrentRowKeepColumn(Event event) {
+		if (keepEditing && !renderer.isEditing()) {
+			keepEditing = false;
+			Row currentRow = renderer.getCurrentRow();
+			if (currentRow == null)
+				return;
+			renderer.editCurrentRow();
+			if (!Util.isEmpty(focusedColumnName)) {
+				setFocusToField(focusedColumnName);
+			}
+		}
 	}
 }

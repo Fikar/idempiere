@@ -9,7 +9,7 @@
 	</parent>
 	<artifactId>org.adempiere.server.feature</artifactId>
 	<packaging>eclipse-feature</packaging>
-	<build>
+<!-- 	<build>
 		<plugins>
 			<plugin>
 				<artifactId>maven-clean-plugin</artifactId>
@@ -67,5 +67,5 @@
 				</executions>
 			</plugin>
 		</plugins>
-	</build>
+	</build> -->
 </project>

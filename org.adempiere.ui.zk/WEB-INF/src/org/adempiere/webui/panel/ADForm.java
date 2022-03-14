@@ -123,6 +123,11 @@ public abstract class ADForm extends Window implements EventListener<Event>, IHe
     public String getFormName() {
     	return m_name;
     }
+    
+    // liangwei, set form name
+    public void setFormName(String name) {
+    	m_name = name;
+    }
 
 	/**
 	 * Create a new form corresponding to the specified identifier
